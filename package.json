@@ -1,0 +1,10 @@
+{
+  "name": "ai-os",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev:bot": "pnpm -C apps/bot dev",
+    "dev:miniapp": "pnpm -C apps/miniapp dev"
+  }
+}
