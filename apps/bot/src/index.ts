@@ -5,21 +5,20 @@ import express from 'express';
 
 dotenv.config();
 
-// Anahtarı ve Bot Token'ı al
 const bot = new Telegraf(process.env.BOT_TOKEN || '');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// GÜNCEL MODEL: gemini-1.5-flash
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// EN GARANTİ MODEL: gemini-pro
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => { res.send('🦁 Atlas Brain: Active (Flash Mode)'); });
+app.get('/', (req, res) => { res.send('🦁 Atlas Brain: Online'); });
 app.listen(port, () => { console.log(`Server running on port ${port}`); });
 
 bot.start((ctx) => {
-  ctx.reply('🦁 Atlas Hazır.\n\nGoogle Gemini 1.5 Flash motoru devrede.\n\nBana bir soru sor Patron!');
+  ctx.reply('🦁 Sistem Resetlendi. Yeni kimlikler yüklendi. Hazırım Patron.');
 });
 
 bot.on('text', async (ctx) => {
@@ -27,14 +26,13 @@ bot.on('text', async (ctx) => {
   ctx.sendChatAction('typing');
 
   try {
-    const result = await model.generateContent(`Sen Atlas, Sovereign OS asistanısın. Kullanıcı: "${userMessage}". Kısa, zeki ve "Patron" diyerek cevapla.`);
+    const result = await model.generateContent(userMessage);
     const response = await result.response;
     const text = response.text();
-    await ctx.reply(text, { parse_mode: 'Markdown' });
+    await ctx.reply(text);
   } catch (error: any) {
     console.error('Gemini Hatası:', error);
-    // Hatayı Telegram'a da gönderelim ki görebilelim
-    ctx.reply(`⚠️ HATA OLUŞTU:\n${error.message || error}`);
+    ctx.reply(`⚠️ HATA: ${error.message}`);
   }
 });
 
