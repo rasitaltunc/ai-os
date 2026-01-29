@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WebApp from '@twa-dev/sdk';
 import { 
   Terminal, 
-  Cpu, 
-  Zap, 
   Shield, 
   Code2, 
   ScrollText, 
@@ -56,9 +54,10 @@ function App() {
     document.documentElement.style.setProperty('--primary', config.color);
     document.documentElement.style.setProperty('--bg', config.bg);
     
+    // TypeScript hatasını susturmak için 'as any' kullanıyoruz
     if (WebApp.initData) {
-      WebApp.setHeaderColor(config.bg);
-      WebApp.setBackgroundColor(config.bg);
+      WebApp.setHeaderColor(config.bg as any);
+      WebApp.setBackgroundColor(config.bg as any);
     }
   }, [mode]);
 
