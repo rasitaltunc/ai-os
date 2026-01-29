@@ -1,41 +1,58 @@
-import "dotenv/config";
-import { Telegraf } from "telegraf";
+import { Telegraf } from 'telegraf';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as dotenv from 'dotenv';
+import express from 'express';
 
-const bot = new Telegraf(process.env.BOT_TOKEN!);
+dotenv.config();
 
-bot.start(async (ctx) => {
-  await ctx.reply(
-    "Selam kanka 😎 Ben Atlas.\n\nKomutlar:\n/brief am|pm|trends\n/task add <...>\n/task list\n/mood normal\n/reset\n/settings",
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "📊 Paneli Aç", web_app: { url: process.env.APP_BASE_URL! } }]
-        ]
-      }
-    }
-  );
+// 1. Kurulumlar
+const bot = new Telegraf(process.env.BOT_TOKEN || '');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// 2. Web Sunucusu (Render'ın Ayakta Kalması İçin)
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('🦁 Atlas Brain: Active & Listening...');
 });
 
-bot.command("brief", (ctx) =>
-  ctx.reply("🌅 AM Brief (MVP)\n- (Şimdilik) görev yok.\n/task add ... ile başla")
-);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
-bot.command("task", (ctx) =>
-  ctx.reply("🧾 Task MVP: Şimdilik sadece iskelet. Sonraki adımda Supabase bağlayacağız.")
-);
+// 3. Başlangıç Mesajı
+bot.start((ctx) => {
+  ctx.reply('🦁 UYANIŞ TAMAMLANDI.\n\nBen Atlas. Sovereign OS\'un zekasıyım.\nArtık beni sadece bir sekreter olarak değil, bir stratejist olarak kullanabilirsin.\n\nBana bir görev ver veya bir soru sor. Deneyelim!');
+});
 
-bot.command("mood", (ctx) =>
-  ctx.reply("Mood kaydedildi ✅ Bugün mini mod: 1 küçük hedef seçelim.")
-);
+// 4. Beyin Fonksiyonu (Yapay Zeka Cevabı)
+bot.on('text', async (ctx) => {
+  const userMessage = ctx.message.text;
 
-bot.command("reset", (ctx) =>
-  ctx.reply("🫁 60 sn reset: 4 al, 4 tut, 6 ver (3 tur). Sonra 1 küçük adım yaz.")
-);
+  // Bekliyor efekti ver (Yazıyor...)
+  ctx.sendChatAction('typing');
 
-bot.command("settings", (ctx) =>
-  ctx.reply("⚙️ Ayarlar: (MVP) — sonra bağlayacağız.")
-);
+  try {
+    // Gemini'ye sor
+    const result = await model.generateContent(`Sen Atlas adında, Sovereign OS işletim sisteminin yapay zeka asistanısın. Kullanıcı sana şunu yazdı: "${userMessage}". Buna kısa, zeki ve "Patron" diye hitap ederek cevap ver.`);
+    const response = await result.response;
+    const text = response.text();
 
-bot.launch();
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+    // Cevabı Telegram'a ilet
+    await ctx.reply(text, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Gemini Hatası:', error);
+    ctx.reply('⚠️ Beyin dalgalarımda parazit var. Lütfen tekrar dene Patron.');
+  }
+});
+
+// 5. Botu Başlat
+bot.launch().then(() => {
+  console.log('🦁 Atlas is online with Gemini Brain!');
+});
+
+// Hata Yakalama
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
