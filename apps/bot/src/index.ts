@@ -5,31 +5,23 @@ import express from 'express';
 
 dotenv.config();
 
-// 1. Kurulumlar
+// Anahtarı ve Bot Token'ı al
 const bot = new Telegraf(process.env.BOT_TOKEN || '');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// GÜNCELLEME: En yeni ve hızlı model 'gemini-1.5-flash'
+// GÜNCEL MODEL: gemini-1.5-flash
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// 2. Web Sunucusu
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('🦁 Atlas Brain: Active (Gemini 1.5 Flash)');
-});
+app.get('/', (req, res) => { res.send('🦁 Atlas Brain: Active (Flash Mode)'); });
+app.listen(port, () => { console.log(`Server running on port ${port}`); });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
-
-// 3. Başlangıç
 bot.start((ctx) => {
-  ctx.reply('🦁 Atlas v1.5 Hazır.\n\nEn yeni Gemini Flash motoruyla çalışıyorum. Hızlandım.\n\nBana bir görev ver Patron!');
+  ctx.reply('🦁 Atlas Hazır.\n\nGoogle Gemini 1.5 Flash motoru devrede.\n\nBana bir soru sor Patron!');
 });
 
-// 4. Beyin
 bot.on('text', async (ctx) => {
   const userMessage = ctx.message.text;
   ctx.sendChatAction('typing');
@@ -39,13 +31,13 @@ bot.on('text', async (ctx) => {
     const response = await result.response;
     const text = response.text();
     await ctx.reply(text, { parse_mode: 'Markdown' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini Hatası:', error);
-    ctx.reply('⚠️ Bağlantı hatası. (Cache temizliği gerekiyor olabilir)');
+    // Hatayı Telegram'a da gönderelim ki görebilelim
+    ctx.reply(`⚠️ HATA OLUŞTU:\n${error.message || error}`);
   }
 });
 
 bot.launch();
-
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
