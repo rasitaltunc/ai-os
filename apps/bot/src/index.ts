@@ -8,14 +8,16 @@ dotenv.config();
 // 1. Kurulumlar
 const bot = new Telegraf(process.env.BOT_TOKEN || '');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// DİKKAT: Modeli 'gemini-pro' olarak değiştirdik. Bu model en stabil olandır.
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 // 2. Web Sunucusu (Render'ın Ayakta Kalması İçin)
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send('🦁 Atlas Brain: Active & Listening...');
+  res.send('🦁 Atlas Brain: Active & Listening (Gemini Pro)...');
 });
 
 app.listen(port, () => {
@@ -44,13 +46,14 @@ bot.on('text', async (ctx) => {
     await ctx.reply(text, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Gemini Hatası:', error);
-    ctx.reply('⚠️ Beyin dalgalarımda parazit var. Lütfen tekrar dene Patron.');
+    // Hata detayını da yazdıralım ki loglardan görelim
+    ctx.reply('⚠️ Bir bağlantı sorunu var Patron. Logları kontrol et.');
   }
 });
 
 // 5. Botu Başlat
 bot.launch().then(() => {
-  console.log('🦁 Atlas is online with Gemini Brain!');
+  console.log('🦁 Atlas is online with Gemini Pro!');
 });
 
 // Hata Yakalama
